@@ -1,0 +1,1 @@
+import{_ as a,o as r,c as t,ae as l}from"./chunks/framework.B4JSZM3j.js";const c=JSON.parse('{"title":"📚 南京大学企业家研究所文章导航","description":"","frontmatter":{},"headers":[],"relativePath":"index.md","filePath":"index.md"}'),i={name:"index.md"};function n(s,e,o,h,m,p){return r(),t("div",null,[...e[0]||(e[0]=[l("",15)])])}const q=a(i,[["render",n]]);export{c as __pageData,q as default};
