@@ -1,5 +1,6 @@
 name: Deploy VitePress site
 
+# 触发条件：每次 push 到 main 分支
 on:
   push:
     branches: [main]
@@ -9,22 +10,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      # 1️⃣ 拉取仓库代码
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      # 2️⃣ 安装 Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 18  # 确保和本地一致
 
+      # 3️⃣ 安装依赖
       - name: Install dependencies
         run: npm install
 
-      - name: Build site
-        # 用 npx 调用 vitepress，避免权限问题
+      # 4️⃣ 构建 VitePress
+      - name: Build VitePress site
+        # 用 npx 执行 vitepress，避免权限问题
         run: npx vitepress build docs
 
-      - name: Deploy
+      # 5️⃣ 部署到 GitHub Pages
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
