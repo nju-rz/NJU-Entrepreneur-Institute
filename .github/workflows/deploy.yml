@@ -4,11 +4,15 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# 👇 新增：显式声明权限（核心修复）
+# 强制用 Node.js 24 运行 Actions（消除弃用警告）
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+# 显式声明权限（解决403问题）
 permissions:
-  contents: write  # 允许读写仓库内容（推送到gh-pages分支）
-  pages: write     # 允许操作GitHub Pages
-  id-token: write  # 可选，增强Pages部署权限
+  contents: write
+  pages: write
+  id-token: write
 
 jobs:
   build-deploy:
@@ -22,7 +26,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18.20.0
+          node-version: 24  # 适配Node.js 24，兼容VitePress
           cache: 'npm'
 
       - name: Install dependencies (fix network/permission)
@@ -45,11 +49,10 @@ jobs:
           fi
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4  # v4版本
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs/.vitepress/dist
-          force_orphan: true
+          force_orphan: true  # 保留这个参数即可实现强制覆盖
           publish_branch: gh-pages
-          # 👇 新增：强制推送（覆盖旧分支，避免冲突）
-          force_push: true
+          # 👇 删除无效的 force_push: true 参数
