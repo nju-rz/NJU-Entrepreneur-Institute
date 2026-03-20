@@ -1,36 +1,55 @@
 name: Deploy VitePress site
-
-# 触发条件：每次 push 到 main 分支
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
-
     steps:
-      # 1️⃣ 拉取仓库代码
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # 2️⃣ 安装 Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18.12.1  # 与本地一致
+          node-version: 18.20.0  # 和你本地一致的版本
+          cache: 'npm'
 
-      # 3️⃣ 安装依赖
-      - name: Install dependencies
-        run: npm install
+      # 👇 优化依赖安装：换源+强制重装+检查安装结果
+      - name: Install dependencies (fix network/permission)
+        run: |
+          # 换国内源加速安装，避免网络超时
+          npm config set registry https://registry.npmmirror.com
+          # 强制重装依赖（确保vitepress完整安装）
+          npm ci --force
+          # 检查node_modules是否存在，且包含vitepress
+          if [ ! -d "node_modules/vitepress" ]; then
+            echo "❌ vitepress 依赖未安装成功！"
+            ls -la node_modules/  # 打印已安装的依赖，便于排查
+            exit 1
+          fi
 
-      # 4️⃣ 构建 VitePress
-      - name: Build VitePress site
-        run: npm run build   # ⚠️ 用 npm script，避免权限问题
+      # 👇 核心修复：直接调用本地vitepress，加执行权限
+      - name: Build VitePress site (fix permission)
+        run: |
+          # 给本地vitepress可执行文件加权限
+          chmod +x node_modules/.bin/vitepress
+          # 直接执行本地vitepress构建（绕开npm script解析）
+          node_modules/.bin/vitepress build docs
+          # 检查构建产物是否生成
+          if [ ! -d "docs/.vitepress/dist" ]; then
+            echo "❌ 构建产物未生成！"
+            exit 1
+          fi
 
-      # 5️⃣ 部署到 GitHub Pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: docs/.vitepress/dist
+          publish_dir: ./docs/.vitepress/dist
+          force_orphan: true
+          publish_branch: gh-pages
