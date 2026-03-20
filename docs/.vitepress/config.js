@@ -1,7 +1,7 @@
 export default {
   title: "公众号文章导航",
   description: "我的公众号内容索引",
-
+  base: "/NJU-Entrepreneur-Institute/", 
   themeConfig: {
     nav: [
       { text: "首页", link: "/" }
@@ -17,7 +17,7 @@ export default {
     ],
 
     socialLinks: [
-      { icon: "github", link: "https://github.com/njuentrepreneurshipinstitute" }
+      { icon: "github", link: "https://github.com/nju-rz" }
     ]
   }
 }
