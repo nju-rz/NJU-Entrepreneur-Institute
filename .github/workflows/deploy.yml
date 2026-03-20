@@ -4,6 +4,12 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# 👇 新增：显式声明权限（核心修复）
+permissions:
+  contents: write  # 允许读写仓库内容（推送到gh-pages分支）
+  pages: write     # 允许操作GitHub Pages
+  id-token: write  # 可选，增强Pages部署权限
+
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
@@ -16,31 +22,23 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18.20.0  # 和你本地一致的版本
+          node-version: 18.20.0
           cache: 'npm'
 
-      # 👇 优化依赖安装：换源+强制重装+检查安装结果
       - name: Install dependencies (fix network/permission)
         run: |
-          # 换国内源加速安装，避免网络超时
           npm config set registry https://registry.npmmirror.com
-          # 强制重装依赖（确保vitepress完整安装）
           npm ci --force
-          # 检查node_modules是否存在，且包含vitepress
           if [ ! -d "node_modules/vitepress" ]; then
             echo "❌ vitepress 依赖未安装成功！"
-            ls -la node_modules/  # 打印已安装的依赖，便于排查
+            ls -la node_modules/
             exit 1
           fi
 
-      # 👇 核心修复：直接调用本地vitepress，加执行权限
       - name: Build VitePress site (fix permission)
         run: |
-          # 给本地vitepress可执行文件加权限
           chmod +x node_modules/.bin/vitepress
-          # 直接执行本地vitepress构建（绕开npm script解析）
           node_modules/.bin/vitepress build docs
-          # 检查构建产物是否生成
           if [ ! -d "docs/.vitepress/dist" ]; then
             echo "❌ 构建产物未生成！"
             exit 1
@@ -53,3 +51,5 @@ jobs:
           publish_dir: ./docs/.vitepress/dist
           force_orphan: true
           publish_branch: gh-pages
+          # 👇 新增：强制推送（覆盖旧分支，避免冲突）
+          force_push: true
