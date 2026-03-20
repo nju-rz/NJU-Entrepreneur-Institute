@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18  # 确保和本地一致
+          node-version: 18  # 与本地一致
 
       # 3️⃣ 安装依赖
       - name: Install dependencies
@@ -26,8 +26,7 @@ jobs:
 
       # 4️⃣ 构建 VitePress
       - name: Build VitePress site
-        # 用 npx 执行 vitepress，避免权限问题
-        run: npx vitepress build docs
+        run: npm run build   # ⚠️ 用 npm script，避免权限问题
 
       # 5️⃣ 部署到 GitHub Pages
       - name: Deploy to GitHub Pages
